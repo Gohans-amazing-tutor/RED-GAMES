@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gohan's RedGames</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet">
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  background: #0b0b0b;
+  color: #ff3b3b;
+}
+
+/* TOP BAR */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  background: #0a0a0a;
+  border-bottom: 1px solid rgba(255,0,0,0.3);
+  z-index: 1000;
+}
+
+.logo {
+  font-family: 'Pacifico', cursive;
+  font-size: 24px;
+  margin-right: 40px;
+  color: red;
+}
+
+.search {
+  flex: 1;
+}
+
+.search input {
+  width: 55%;
+  padding: 9px;
+  background: #111;
+  border: 1px solid red;
+  color: red;
+  border-radius: 10px;
+}
+
+/* LAYOUT */
+.wrapper {
+  display: flex;
+  margin-top: 60px;
+}
+
+.sidebar {
+  width: 200px;
+  background: #0f0f0f;
+  border-right: 1px solid red;
+  min-height: 100vh;
+  padding: 10px;
+}
+
+.main {
+  flex: 1;
+  padding: 15px;
+}
+
+/* GRID */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 15px;
+}
+
+/* GAME BLOCK */
+.game {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* CARD */
+.card {
+  height: 140px;
+  border-radius: 14px;
+  background: #111;
+  border: 1px solid red;
+  overflow: hidden;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.card:hover {
+  transform: scale(1.03);
+}
+
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* TITLE */
+.title {
+  font-size: 13px;
+  padding-left: 4px;
+  color: #ff4a4a;
+}
+
+/* OVERLAY */
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  background: rgba(0,0,0,0.95);
+}
+
+.overlay-top {
+  height: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+  border-bottom: 1px solid red;
+}
+
+button {
+  background: #111;
+  border: 1px solid red;
+  color: red;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <div class="logo">Gohan's RedGames</div>
+
+  <div class="search">
+    <input id="search" placeholder="Search games..." />
+  </div>
+</div>
+
+<div class="wrapper">
+
+  <div class="sidebar">
+    <button onclick="loadGames()">All Games</button>
+  </div>
+
+  <div class="main">
+    <div class="grid" id="grid"></div>
+  </div>
+
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="overlay-top">
+    <button onclick="closeGame()">Back</button>
+    <div id="title"></div>
+    <button onclick="toggleFull()">Fullscreen</button>
+  </div>
+  <iframe id="frame"></iframe>
+</div>
+
+<script>
+let ALL = [];
+
+async function loadJSON() {
+  const res = await fetch("game.json");
+  const data = await res.json();
+
+  ALL = data.filter(g => g && g.name && g.url && g.image);
+  loadGames();
+}
+
+function loadGames(list = ALL) {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  list.forEach(g => {
+    const div = document.createElement("div");
+
+    div.className = "game";
+    div.innerHTML = `
+      <div class="card" onclick="openGame('${g.url}','${g.name}')">
+        <img src="${g.image}">
+      </div>
+      <div class="title">${g.name}</div>
+    `;
+
+    grid.appendChild(div);
+  });
+}
+
+function openGame(url, name) {
+  document.getElementById("overlay").style.display = "flex";
+  document.getElementById("frame").src = url;
+  document.getElementById("title").innerText = name;
+}
+
+function closeGame() {
+  document.getElementById("overlay").style.display = "none";
+  document.getElementById("frame").src = "";
+}
+
+function toggleFull() {
+  if (!document.fullscreenElement) document.getElementById("overlay").requestFullscreen();
+  else document.exitFullscreen();
+}
+
+document.getElementById("search").addEventListener("input", e => {
+  const v = e.target.value.toLowerCase();
+  loadGames(ALL.filter(g => g.name.toLowerCase().includes(v)));
+});
+
+loadJSON();
+</script>
+
+</body>
+</html>
